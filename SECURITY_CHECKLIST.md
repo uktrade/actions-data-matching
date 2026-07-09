@@ -1,1 +1,0 @@
-[comment]: # (Ensure this file is populated with the security checklist copy-pasted from here: https://github.com/uktrade/.github/blob/main/SECURITY.md#security_checklistmd)
