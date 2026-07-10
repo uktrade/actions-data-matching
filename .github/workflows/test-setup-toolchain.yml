@@ -1,0 +1,68 @@
+name: Test setup-toolchain action
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  test-setup-toolchain:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: defaults
+            install-just: "true"
+            install-bun: "false"
+            expect-just: "true"
+            expect-bun: "false"
+
+          - name: bun-enabled
+            install-just: "false"
+            install-bun: "true"
+            expect-just: "false"
+            expect-bun: "true"
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # setup-uv enables caching of uv.lock; provide the smallest
+      # possible fixture and make uv create its cache after install.
+      - name: Create uv fixture
+        run: touch uv.lock
+
+      - name: Run action
+        uses: ./setup-toolchain
+        with:
+          install-just: ${{ matrix.install-just }}
+          install-bun: ${{ matrix.install-bun }}
+
+      - name: Populate uv cache
+        run: uv venv
+
+      - name: Verify Python and uv
+        run: |
+          python --version
+          uv --version
+
+      - name: Verify just installed
+        if: ${{ matrix.expect-just == 'true' }}
+        run: just --version
+
+      - name: Verify just not installed
+        if: ${{ matrix.expect-just == 'false' }}
+        run: |
+          ! command -v just
+
+      - name: Verify bun installed
+        if: ${{ matrix.expect-bun == 'true' }}
+        run: bun --version
+
+      - name: Verify bun not installed
+        if: ${{ matrix.expect-bun == 'false' }}
+        run: |
+          ! command -v bun

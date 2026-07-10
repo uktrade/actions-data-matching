@@ -26,11 +26,17 @@ See [GitHub's own guidance](https://docs.github.com/en/actions/reference/securit
 pre-commit install --install-hooks --overwrite -t commit-msg -t pre-commit
 ```
 
-We suggest working on actions in a separate own repo, then PRing them into this one once they're battle-tested.
+This repo uses [`just`](https://just.systems/man/en/) as its task runner.
+
+Install [`act`](https://nektosact.com/installation/gh.html) for running and testing GitHub Actions locally. We assume you installed it as a GitHub CLI extension. `gh act` is used to power `just test`.
+
+Install [`actionlint`](https://github.com/rhysd/actionlint) for linting and formatting GitHub Actions. This is used to power `just format`.
 
 Each action lives in its own directory containing an `action.yml` and a `README.md`.
 
 In order to avoid supply chain attacks, we [pin all actions in workflows](https://codeql.github.com/codeql-query-help/actions/actions-unpinned-tag/).
+
+Each action should have tests in `.github/workflows/`, and `ci.yml`'s `ci-success` should depend on it.
 
 ### Updating
 

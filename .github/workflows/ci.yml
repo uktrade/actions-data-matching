@@ -2,19 +2,40 @@ name: CI
 
 on:
   pull_request:
-    paths:
-      - '.github/workflows/**'
-      - '**/action.yml'
-      - '**/action.yaml'
+  workflow_dispatch:
 
 jobs:
-  actionlint:
+  format-and-lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Run actionlint
-        uses: reviewdog/action-actionlint@a5524e1c19e62881d79c1f1b9b6f09f16356e281 # v1.65.2
-        with:
-          fail_level: error
+      - name: Download actionlint
+        id: get_actionlint
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+        shell: bash
+
+      - name: Check workflow files
+        run: ${{ steps.get_actionlint.outputs.executable }}
+        shell: bash
+
+  test-setup-toolchain:
+    uses: ./.github/workflows/test-setup-toolchain.yml
+    permissions:
+      contents: read
+
+  ci-success:
+    needs:
+      - format-and-lint
+      - test-setup-toolchain
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: CI success
+        run: echo "All CI checks passed!"
